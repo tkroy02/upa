@@ -154,6 +154,7 @@
             border: 1px solid var(--success);
             display: block;
             opacity: 1;
+            animation: fadeIn 0.5s ease;
         }
         
         .error {
@@ -162,6 +163,7 @@
             border: 1px solid var(--error);
             display: block;
             opacity: 1;
+            animation: fadeIn 0.5s ease;
         }
         
         .footer {
@@ -269,7 +271,7 @@
         // Firebase imports (unchanged from original)
         import { auth, db } from './scheduler-firebase.js';
         import { createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
-        import { doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
+        import { doc, setDoc, serverTimestamp, getDoc } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 
         const form = document.getElementById("tutorSignupForm");
         const message = document.getElementById("message");
@@ -338,12 +340,22 @@
                     createdAt: serverTimestamp()
                 });
 
-                showSuccess("Signup successful! Your account is pending approval. You'll receive an email once approved.");
+                showSuccess("You have signed up successfully! Your account is pending approval. You'll receive an email once approved.");
                 form.reset();
 
             } catch (error) {
-                console.error(error);
-                showError(null, error.message);
+                console.error("Signup error:", error);
+                
+                // Handle specific error cases
+                if (error.code === 'auth/email-already-in-use') {
+                    showError(null, "This email is already registered. Please use a different email or try signing in.");
+                } else if (error.code === 'auth/weak-password') {
+                    showError(document.getElementById('password'), "Password is too weak. Please choose a stronger password.");
+                } else if (error.code === 'auth/invalid-email') {
+                    showError(document.getElementById('email'), "Invalid email address. Please check your email and try again.");
+                } else {
+                    showError(null, "Signup failed: " + error.message);
+                }
                 
                 // Add shake animation to form on error
                 form.classList.add('shake');
@@ -357,9 +369,17 @@
             message.className = "error";
             
             if (input) {
-                input.style.borderColor = "#e63946"; // use the HEX color directly;
+                input.style.borderColor = "#e63946";
                 input.focus();
+                
+                // Clear the error styling after 3 seconds
+                setTimeout(() => {
+                    input.style.borderColor = "#e6e6e6";
+                }, 3000);
             }
+            
+            // Scroll to message to ensure it's visible
+            message.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
         
         function showSuccess(text) {
@@ -368,6 +388,12 @@
             
             // Scroll to message to ensure it's visible
             message.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            
+            // Clear the success message after 5 seconds
+            setTimeout(() => {
+                message.textContent = "";
+                message.className = "";
+            }, 5000);
         }
         
         function isValidEmail(email) {
