@@ -51,6 +51,7 @@
             box-shadow: var(--box-shadow);
             padding: 35px;
             transition: var(--transition);
+            position: relative;
         }
         
         .card:hover {
@@ -143,6 +144,8 @@
             text-align: center;
             font-weight: 500;
             display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
         
         .success {
@@ -150,6 +153,7 @@
             color: var(--success);
             border: 1px solid var(--success);
             display: block;
+            opacity: 1;
         }
         
         .error {
@@ -157,6 +161,7 @@
             color: var(--error);
             border: 1px solid var(--error);
             display: block;
+            opacity: 1;
         }
         
         .footer {
@@ -360,6 +365,9 @@
         function showSuccess(text) {
             message.textContent = text;
             message.className = "success";
+            
+            // Scroll to message to ensure it's visible
+            message.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
         
         function isValidEmail(email) {
