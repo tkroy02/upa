@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scheduler Dashboard</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        /* Basic Modal Styling */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgb(0,0,0);
+            background-color: rgba(0,0,0,0.4);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .close-btn {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close-btn:hover,
+        .close-btn:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        /* Slot Styling */
+        .slot-item {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .past-slot {
+            background-color: #f0f0f0;
+            color: #888;
+        }
+        .booked-slot {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2 id="welcomeMsg">Welcome to Your Scheduler Dashboard</h2>
+        <div id="roleSection"></div>
+        <button id="logoutBtn">Logout</button>
+    </div>
+
+    <div id="myModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <p id="modalMessage"></p>
+            <button id="modalConfirmBtn" style="display: none;">Confirm</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { auth, db } from './scheduler-firebase.js';
+        import { signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+        import { collection, addDoc, getDoc, doc, deleteDoc, serverTimestamp, query, where, orderBy, onSnapshot, limit, startAfter, getDocs, runTransaction } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
+
+        const welcomeMsg = document.getElementById("welcomeMsg");
+        const roleSection = document.getElementById("roleSection");
+        const today = new Date().toISOString().split('T')[0];
+
+        // Modal elements
+        const modal = document.getElementById("myModal");
+        const modalMessage = document.getElementById("modalMessage");
+        const modalConfirmBtn = document.getElementById("modalConfirmBtn");
+        const closeBtn = document.querySelector(".close-btn");
+
+        closeBtn.onclick = () => {
+            modal.style.display = "none";
+        };
+        window.onclick = (event) => {
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        };
+
+        const showModal = (message, onConfirm = null) => {
+            modalMessage.innerText = message;
+            if (onConfirm) {
+                modalConfirmBtn.style.display = "block";
+                modalConfirmBtn.onclick = onConfirm;
+            } else {
+                modalConfirmBtn.style.display = "none";
+            }
+            modal.style.display = "flex";
+        };
+
+        let lastTutorSlot = null;
+        let lastStudentSlot = null;
+        
+        // Protect dashboard: redirect if not logged in
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                window.location.href = "login.html";
+                return;
+            }
+            
+            let userData = null;
+            try {
+                const docRef = doc(db, "users", user.uid);
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    userData = docSnap.data();
+
+                    // Only allow tutors if approved
+                    if (userData.role === "tutor" && !userData.approved) {
+                        alert("Your tutor account is not approved yet. Contact admin.");
+                        await signOut(auth);
+                        window.location.href = "login.html";
+                        return;
+                    }
+
+                    welcomeMsg.textContent = `Welcome, ${userData.name}!`;
+                    
+                    if (userData.role === "tutor") {
+                        renderTutorDashboard();
+                    } else {
+                        renderStudentDashboard();
+                    }
+                } else {
+                    alert("User data not found. Contact support.");
+                    await signOut(auth);
+                    window.location.href = "login.html";
+                }
+            } catch (error) {
+                console.error("Failed to fetch user data:", error);
+                showModal("Error loading dashboard.", null);
+                return;
+            }
+
+            const renderTutorDashboard = () => {
+                roleSection.innerHTML = `
+                    <h3>Tutor Panel</h3>
+                    <p>You can create availability slots and manage your sessions.</p>
+                    <label>Date: <input type="date" id="slotDate"></label>
+                    <label>Start Time: <input type="time" id="startTime"></label>
+                    <label>End Time: <input type="time" id="endTime"></label>
+                    <button id="createSlotBtn">Create Availability Slot</button>
+                    <p id="slotMsg"></p>
+                    <h4>Your Upcoming Slots</h4>
+                    <div id="upcomingSlots"></div>
+                    <button id="loadMoreTutorSlotsBtn" style="display: none;">Load More</button>
+                `;
+                
+                const createSlotBtn = document.getElementById("createSlotBtn");
+                createSlotBtn.addEventListener("click", async () => {
+                    createSlotBtn.disabled = true;
+                    createSlotBtn.innerText = "Creating...";
+                    const date = document.getElementById("slotDate").value;
+                    const startTime = document.getElementById("startTime").value;
+                    const endTime = document.getElementById("endTime").value;
+                    
+                    if (!date || !startTime || !endTime) {
+                        showModal("Please fill all fields.", null);
+                        createSlotBtn.disabled = false;
+                        createSlotBtn.innerText = "Create Availability Slot";
+                        return;
+                    }
+                    
+                    try {
+                        await addDoc(collection(db, "availabilitySlots"), {
+                            tutorId: auth.currentUser.uid,
+                            date,
+                            startTime,
+                            endTime,
+                            createdAt: serverTimestamp()
+                        });
+                        showModal("Availability slot created!");
+                        document.getElementById("slotDate").value = '';
+                        document.getElementById("startTime").value = '';
+                        document.getElementById("endTime").value = '';
+                    } catch (error) {
+                        console.error(error);
+                        showModal("Error creating slot.", null);
+                    } finally {
+                        createSlotBtn.disabled = false;
+                        createSlotBtn.innerText = "Create Availability Slot";
+                    }
+                });
+
+                const upcomingSlotsDiv = document.getElementById("upcomingSlots");
+                const loadMoreBtn = document.getElementById("loadMoreTutorSlotsBtn");
+
+                onSnapshot(query(
+                    collection(db, "availabilitySlots"),
+                    where("tutorId", "==", auth.currentUser.uid),
+                    orderBy("date"),
+                    orderBy("startTime"),
+                    limit(10)
+                ), (snapshot) => {
+                    upcomingSlotsDiv.innerHTML = '';
+                    snapshot.forEach(docSnap => {
+                        renderTutorSlot(docSnap, upcomingSlotsDiv);
+                    });
+                    lastTutorSlot = snapshot.docs[snapshot.docs.length - 1];
+                    if (snapshot.size === 10) {
+                        loadMoreBtn.style.display = 'block';
+                    } else {
+                        loadMoreBtn.style.display = 'none';
+                    }
+                    if (snapshot.empty) {
+                        upcomingSlotsDiv.innerHTML = '<p>You have no slots.</p>';
+                    }
+                });
+
+                loadMoreBtn.addEventListener("click", async () => {
+                    if (!lastTutorSlot) return;
+                    
+                    loadMoreBtn.disabled = true;
+                    loadMoreBtn.innerText = 'Loading...';
+
+                    const q = query(
+                        collection(db, "availabilitySlots"),
+                        where("tutorId", "==", auth.currentUser.uid),
+                        orderBy("date"),
+                        orderBy("startTime"),
+                        startAfter(lastTutorSlot),
+                        limit(10)
+                    );
+
+                    const snapshot = await getDocs(q);
+                    snapshot.forEach(docSnap => {
+                        renderTutorSlot(docSnap, upcomingSlotsDiv);
+                    });
+
+                    lastTutorSlot = snapshot.docs[snapshot.docs.length - 1];
+                    loadMoreBtn.disabled = false;
+                    loadMoreBtn.innerText = 'Load More';
+
+                    if (snapshot.empty || snapshot.size < 10) {
+                        loadMoreBtn.style.display = 'none';
+                    }
+                });
+
+                const renderTutorSlot = (docSnap, container) => {
+                    const slot = docSnap.data();
+                    const slotId = docSnap.id;
+                    const slotDateTime = new Date(`${slot.date}T${slot.startTime}`);
+                    const now = new Date();
+                    const hoursDiff = (slotDateTime - now) / (1000 * 60 * 60);
+
+                    const slotDiv = document.createElement("div");
+                    slotDiv.classList.add('slot-item');
+                    if (slotDateTime < now) {
+                        slotDiv.classList.add('past-slot');
+                    }
+                    
+                    slotDiv.innerHTML = `<span>Date: ${slot.date} | Time: ${slot.startTime} - ${slot.endTime}</span>`;
+                    
+                    if (hoursDiff > 24) {
+                        const cancelSlotBtn = document.createElement("button");
+                        cancelSlotBtn.innerText = "Cancel Slot";
+                        cancelSlotBtn.addEventListener("click", () => {
+                            showModal(
+                                "Are you sure you want to cancel this slot and all associated bookings?",
+                                async () => {
+                                    cancelSlotBtn.disabled = true;
+                                    cancelSlotBtn.innerText = "Canceling...";
+                                    modal.style.display = "none";
+                                    try {
+                                        const bookedSessionsQuery = query(collection(db, "bookedSessions"), where("slotId", "==", slotId));
+                                        const bookedSessionsSnapshot = await getDocs(bookedSessionsQuery);
+                                        bookedSessionsSnapshot.forEach(async (sessionDoc) => {
+                                            await deleteDoc(doc(db, "bookedSessions", sessionDoc.id));
+                                        });
+                                        await deleteDoc(doc(db, "availabilitySlots", slotId));
+                                    } catch (error) {
+                                        console.error("Error canceling slot:", error);
+                                        showModal("Failed to cancel slot.", null);
+                                    }
+                                }
+                            );
+                        });
+                        slotDiv.appendChild(cancelSlotBtn);
+                    } else if (hoursDiff <= 24 && hoursDiff > 0) {
+                        const warningSpan = document.createElement("span");
+                        warningSpan.innerText = "(Cannot cancel within 24 hours)";
+                        warningSpan.style.color = "gray";
+                        warningSpan.style.fontSize = "0.8em";
+                        slotDiv.appendChild(warningSpan);
+                    }
+                    container.appendChild(slotDiv);
+                };
+            };
+            
+            const renderStudentDashboard = () => {
+                roleSection.innerHTML = `
+                    <h3>Student Panel</h3>
+                    <p>Book sessions with tutors and see your upcoming lessons.</p>
+                    <h4>Available Tutors</h4>
+                    <div id="availableSlots"></div>
+                    <button id="loadMoreStudentSlotsBtn" style="display: none;">Load More</button>
+                    <h4>Your Booked Sessions</h4>
+                    <div id="bookedSessions"></div>
+                `;
+
+                const slotsDiv = document.getElementById("availableSlots");
+                const bookedSessionsDiv = document.getElementById("bookedSessions");
+                const loadMoreStudentSlotsBtn = document.getElementById("loadMoreStudentSlotsBtn");
+
+                onSnapshot(query(
+                    collection(db, "bookedSessions"),
+                    where("studentId", "==", auth.currentUser.uid)
+                ), async (bookedSnapshot) => {
+                    if (bookedSnapshot.empty) {
+                        bookedSessionsDiv.innerHTML = '<p>You have no upcoming booked sessions.</p>';
+                        return;
+                    }
+                    bookedSessionsDiv.innerHTML = '';
+                    const slotPromises = bookedSnapshot.docs.map(docSnap => {
+                        const slotId = docSnap.data().slotId;
+                        return getDoc(doc(db, "availabilitySlots", slotId));
+                    });
+                    const slotDocs = await Promise.all(slotPromises);
+
+                    bookedSnapshot.docs.forEach((docSnap, index) => {
+                        const session = docSnap.data();
+                        const sessionDocId = docSnap.id;
+                        const slotDoc = slotDocs[index];
+                        
+                        if (!slotDoc.exists()) return;
+                        const slot = slotDoc.data();
+                        
+                        const sessionDiv = document.createElement("div");
+                        sessionDiv.classList.add('slot-item', 'booked-slot');
+                        sessionDiv.innerHTML = `<span>Tutor session on ${slot.date} from ${slot.startTime} to ${slot.endTime}</span>`;
+                        
+                        const sessionDateTime = new Date(`${slot.date}T${slot.startTime}`);
+                        const hoursDiff = (sessionDateTime - new Date()) / (1000 * 60 * 60);
+
+                        if (hoursDiff > 24) {
+                            const cancelBtn = document.createElement("button");
+                            cancelBtn.innerText = "Cancel Session";
+                            cancelBtn.addEventListener("click", () => {
+                                showModal(
+                                    "Are you sure you want to cancel this session?",
+                                    async () => {
+                                        cancelBtn.disabled = true;
+                                        cancelBtn.innerText = "Canceling...";
+                                        modal.style.display = "none";
+                                        try {
+                                            await deleteDoc(doc(db, "bookedSessions", sessionDocId));
+                                        } catch (error) {
+                                            console.error("Error canceling session:", error);
+                                            showModal("Failed to cancel session.", null);
+                                        }
+                                    }
+                                );
+                            });
+                            sessionDiv.appendChild(cancelBtn);
+                        } else {
+                            const warningSpan = document.createElement("span");
+                            warningSpan.innerText = "(Cannot cancel within 24 hours)";
+                            warningSpan.style.color = "gray";
+                            warningSpan.style.fontSize = "0.8em";
+                            sessionDiv.appendChild(warningSpan);
+                        }
+                        bookedSessionsDiv.appendChild(sessionDiv);
+                    });
+                });
+
+                const renderAvailableSlots = async () => {
+                    const q = query(
+                        collection(db, "availabilitySlots"),
+                        where("date", ">=", today),
+                        orderBy("date"),
+                        orderBy("startTime"),
+                        limit(10)
+                    );
+                    
+                    const snapshot = await getDocs(q);
+                    slotsDiv.innerHTML = '';
+                    if (snapshot.empty) {
+                        slotsDiv.innerHTML = '<p>No available slots at this time.</p>';
+                        loadMoreStudentSlotsBtn.style.display = 'none';
+                        return;
+                    }
+                    
+                    snapshot.forEach(docSnap => {
+                        renderAvailableSlot(docSnap, slotsDiv);
+                    });
+                    lastStudentSlot = snapshot.docs[snapshot.docs.length - 1];
+                    if (snapshot.size === 10) {
+                        loadMoreStudentSlotsBtn.style.display = 'block';
+                    } else {
+                        loadMoreStudentSlotsBtn.style.display = 'none';
+                    }
+                };
+
+                const renderAvailableSlot = (docSnap, container) => {
+                    const slot = docSnap.data();
+                    const slotId = docSnap.id;
+                    const slotDiv = document.createElement("div");
+                    slotDiv.classList.add('slot-item');
+                    slotDiv.innerHTML = `<span>${slot.date} | ${slot.startTime} - ${slot.endTime}</span>`;
+                    const bookBtn = document.createElement("button");
+                    bookBtn.className = "bookBtn";
+                    bookBtn.innerText = "Book";
+                    bookBtn.dataset.slotid = slotId;
+                    slotDiv.appendChild(bookBtn);
+                    container.appendChild(slotDiv);
+                };
+
+                const loadMoreStudentSlots = async () => {
+                    if (!lastStudentSlot) return;
+                    loadMoreStudentSlotsBtn.disabled = true;
+                    loadMoreStudentSlotsBtn.innerText = 'Loading...';
+                    const q = query(
+                        collection(db, "availabilitySlots"),
+                        where("date", ">=", today),
+                        orderBy("date"),
+                        orderBy("startTime"),
+                        startAfter(lastStudentSlot),
+                        limit(10)
+                    );
+                    const snapshot = await getDocs(q);
+                    snapshot.forEach(docSnap => {
+                        renderAvailableSlot(docSnap, slotsDiv);
+                    });
+                    lastStudentSlot = snapshot.docs[snapshot.docs.length - 1];
+                    loadMoreStudentSlotsBtn.disabled = false;
+                    loadMoreStudentSlotsBtn.innerText = 'Load More';
+                    if (snapshot.empty || snapshot.size < 10) {
+                        loadMoreStudentSlotsBtn.style.display = 'none';
+                    }
+                };
+
+                renderAvailableSlots();
+                loadMoreStudentSlotsBtn.addEventListener("click", loadMoreStudentSlots);
+
+                slotsDiv.addEventListener("click", async (e) => {
+                    if (e.target.classList.contains("bookBtn")) {
+                        const bookBtn = e.target;
+                        const slotId = bookBtn.dataset.slotid;
+                        
+                        showModal(
+                            "Are you sure you want to book this session?",
+                            async () => {
+                                modal.style.display = "none";
+                                bookBtn.disabled = true;
+                                bookBtn.innerText = "Booking...";
+                                try {
+                                    // Start the Firestore transaction
+                                    await runTransaction(db, async (transaction) => {
+                                        const sessionQuery = query(collection(db, "bookedSessions"), where("slotId", "==", slotId));
+                                        const sessionSnapshot = await transaction.get(sessionQuery);
+                                        
+                                        // If the slot is already booked, throw an error to prevent the transaction from committing
+                                        if (!sessionSnapshot.empty) {
+                                            throw new Error("This slot is no longer available.");
+                                        }
+
+                                        // If the slot is available, book it by adding a new document
+                                        await transaction.set(doc(collection(db, "bookedSessions")), {
+                                            studentId: auth.currentUser.uid,
+                                            slotId: slotId,
+                                            bookedAt: serverTimestamp()
+                                        });
+                                    });
+                                    
+                                    showModal("Session booked successfully!");
+
+                                } catch (error) {
+                                    console.error(error);
+                                    if (error.message === "This slot is no longer available.") {
+                                        showModal("Failed to book session. This slot was just booked by another student.", true);
+                                    } else {
+                                        showModal("An error occurred. Please try again.", true);
+                                    }
+                                } finally {
+                                    bookBtn.disabled = false;
+                                    bookBtn.innerText = "Book";
+                                }
+                            }
+                        );
+                    }
+                });
+            };
+        });
+
+        document.getElementById("logoutBtn").addEventListener("click", async () => {
+            await signOut(auth);
+            window.location.href = "login.html";
+        });
+    </script>
+</body>
+</html>

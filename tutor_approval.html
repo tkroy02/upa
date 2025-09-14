@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tutor Signup</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        form { max-width: 400px; margin: auto; }
+        input, button { width: 100%; padding: 10px; margin: 10px 0; }
+        button { cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h2>Tutor Signup</h2>
+    <form id="tutorSignupForm">
+        <input type="text" id="name" placeholder="Full Name" required>
+        <input type="email" id="email" placeholder="Email" required>
+        <input type="password" id="password" placeholder="Password" required>
+        <button type="submit">Sign Up</button>
+    </form>
+
+    <p id="message"></p>
+
+    <script type="module">
+        import { auth, db } from './scheduler-firebase.js';
+        import { createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+        import { doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
+
+        const form = document.getElementById("tutorSignupForm");
+        const message = document.getElementById("message");
+
+        form.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            message.textContent = "";
+
+            const name = document.getElementById("name").value.trim();
+            const email = document.getElementById("email").value.trim();
+            const password = document.getElementById("password").value;
+
+            if (!name || !email || !password) {
+                message.textContent = "Please fill all fields.";
+                return;
+            }
+
+            try {
+                // Create Firebase Auth user
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+
+                // Save user info in Firestore
+                await setDoc(doc(db, "users", user.uid), {
+                    name: name,
+                    email: email,
+                    role: "tutor",
+                    approved: false,   // tutor must be approved by admin
+                    createdAt: serverTimestamp()
+                });
+
+                message.style.color = "green";
+                message.textContent = "Signup successful! Your account is pending approval.";
+                form.reset();
+
+            } catch (error) {
+                console.error(error);
+                message.style.color = "red";
+                message.textContent = error.message;
+            }
+        });
+    </script>
+</body>
+</html>

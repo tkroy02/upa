@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scheduler Login</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div class="container">
+    <img src="images/logo.png" alt="Tklesson Logo" class="logo">
+    <h2>Login to Scheduler</h2>
+
+    <input type="email" id="email" placeholder="Email" />
+    <input type="password" id="password" placeholder="Password" />
+
+    <div style="display: flex; justify-content: flex-end; width: 100%; margin-bottom: 10px;">
+      <p><a href="reset-password.html">Forgot your password?</a></p>
+    </div>
+
+    <button id="loginBtn">Login</button>
+    <p id="loginMsg"></p>
+
+    <p style="margin-top: 10px;">
+      Don't have an account? <a href="signup.html">Sign up here</a>
+    </p>
+  </div>
+
+  <script type="module" src="login.js"></script>
+</body>
+</html>
