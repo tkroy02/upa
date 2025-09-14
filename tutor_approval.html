@@ -13,7 +13,7 @@
             --accent: #f72585;
             --light: #f8f9fa;
             --dark: #212529;
-            --success: #4cc9f0;
+            --success: #28a745; /* Changed to a standard, clear green */
             --error: #e63946;
             --gray: #6c757d;
             --border-radius: 12px;
@@ -149,7 +149,7 @@
         }
         
         .success {
-            background-color: rgba(76, 201, 240, 0.15);
+            background-color: rgba(40, 167, 69, 0.15); /* New background color for green */
             color: var(--success);
             border: 1px solid var(--success);
             display: block;
@@ -259,14 +259,15 @@
             <p id="message"></p>
             
             <div class="footer">
-                Already have an account? <a href="#">Sign in</a><br>
+                Already have an account? <a href="#">Sign in</a>
                 <a href="#">Terms of Service</a> • <a href="#">Privacy Policy</a>
             </div>
         </div>
     </div>
 
     <script type="module">
-        // Firebase imports - using your existing scheduler-firebase.js
+        // Assuming 'scheduler-firebase.js' is in the same directory.
+        // Replace with your actual Firebase configuration if different.
         import { auth, db } from './scheduler-firebase.js';
         import { createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
         import { doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
@@ -276,7 +277,7 @@
         const passwordToggle = document.getElementById("passwordToggle");
         const passwordInput = document.getElementById("password");
 
-        // Password visibility toggle - Fixed implementation
+        // Password visibility toggle
         passwordToggle.addEventListener('click', () => {
             if (passwordInput.type === 'password') {
                 passwordInput.type = 'text';
@@ -302,23 +303,23 @@
             let isValid = true;
             
             if (!name) {
-                showError(document.getElementById('name'), "Please enter your name");
+                showError(document.getElementById('name'), "Please enter your name.");
                 isValid = false;
             }
             
             if (!email) {
-                showError(document.getElementById('email'), "Please enter your email");
+                showError(document.getElementById('email'), "Please enter your email.");
                 isValid = false;
             } else if (!isValidEmail(email)) {
-                showError(document.getElementById('email'), "Please enter a valid email");
+                showError(document.getElementById('email'), "Please enter a valid email.");
                 isValid = false;
             }
             
             if (!password) {
-                showError(document.getElementById('password'), "Please enter a password");
+                showError(document.getElementById('password'), "Please enter a password.");
                 isValid = false;
             } else if (password.length < 6) {
-                showError(document.getElementById('password'), "Password must be at least 6 characters");
+                showError(document.getElementById('password'), "Password must be at least 6 characters.");
                 isValid = false;
             }
             
