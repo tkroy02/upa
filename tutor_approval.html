@@ -154,7 +154,6 @@
             border: 1px solid var(--success);
             display: block;
             opacity: 1;
-            animation: fadeIn 0.5s ease;
         }
         
         .error {
@@ -163,7 +162,6 @@
             border: 1px solid var(--error);
             display: block;
             opacity: 1;
-            animation: fadeIn 0.5s ease;
         }
         
         .footer {
@@ -268,17 +266,17 @@
     </div>
 
     <script type="module">
-        // Firebase imports (unchanged from original)
+        // Firebase imports - using your existing scheduler-firebase.js
         import { auth, db } from './scheduler-firebase.js';
         import { createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
-        import { doc, setDoc, serverTimestamp, getDoc } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
+        import { doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 
         const form = document.getElementById("tutorSignupForm");
         const message = document.getElementById("message");
         const passwordToggle = document.getElementById("passwordToggle");
         const passwordInput = document.getElementById("password");
 
-        // Password visibility toggle
+        // Password visibility toggle - Fixed implementation
         passwordToggle.addEventListener('click', () => {
             if (passwordInput.type === 'password') {
                 passwordInput.type = 'text';
@@ -348,7 +346,7 @@
                 
                 // Handle specific error cases
                 if (error.code === 'auth/email-already-in-use') {
-                    showError(null, "This email is already registered. Please use a different email or try signing in.");
+                    showError(document.getElementById('email'), "This email is already registered. Please use a different email or try signing in.");
                 } else if (error.code === 'auth/weak-password') {
                     showError(document.getElementById('password'), "Password is too weak. Please choose a stronger password.");
                 } else if (error.code === 'auth/invalid-email') {
