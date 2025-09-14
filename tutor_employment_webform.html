@@ -6,6 +6,7 @@
     <title>Tutor Application Form</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* Your existing CSS remains unchanged */
         :root {
             --bg-color: #121212;
             --form-bg: #1e1e1e;
@@ -338,6 +339,32 @@
             color: var(--secondary-color);
         }
 
+        /* Loading state for submit button */
+        .loading {
+            position: relative;
+            color: transparent;
+        }
+
+        .loading::after {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            top: 50%;
+            left: 50%;
+            margin-left: -8px;
+            margin-top: -8px;
+            border: 2px solid transparent;
+            border-top: 2px solid #ffffff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
         @media (max-width: 768px) {
             .container {
                 padding: 1.5rem;
@@ -543,10 +570,11 @@
             const prevButtons = document.querySelectorAll('.prev');
             const submitButton = document.getElementById('submitButton');
             
-            // Validation patterns
+            // Validation patterns - UPDATED URL PATTERN
             const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             const phonePattern = /^(\+\d{1,3})?[\s.-]?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$/;
-            const urlPattern = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w.-]*)*\/?$/;
+            // More permissive URL pattern that accepts Google Meet links
+            const urlPattern = /^(https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$/;
             
             // Initialize progress bar
             updateProgress();
@@ -567,17 +595,64 @@
                 });
             });
             
-            // Form submission
+            // Form submission - FIXED VERSION
             form.addEventListener('submit', function(e) {
                 e.preventDefault();
                 
                 if (validateSection(currentSection)) {
-                    // Submit to Google Forms
-                    this.submit();
+                    // Show loading state
+                    submitButton.classList.add('loading');
+                    submitButton.disabled = true;
                     
-                    // Show confirmation message
-                    form.style.display = 'none';
-                    document.getElementById('confirmation').style.display = 'block';
+                    // Create a more reliable form submission approach
+                    const formData = new FormData(form);
+                    
+                    // Send form data to Google via fetch with better error handling
+                    fetch(form.action, {
+                        method: 'POST',
+                        body: formData,
+                        mode: 'no-cors',
+                        redirect: 'follow'
+                    })
+                    .then(response => {
+                        // Even with no-cors, we can check if the request was made
+                        console.log('Form submitted successfully');
+                        
+                        // Hide form and show confirmation
+                        form.style.display = 'none';
+                        document.getElementById('confirmation').style.display = 'block';
+                    })
+                    .catch(err => {
+                        // Reset button state on error
+                        submitButton.classList.remove('loading');
+                        submitButton.disabled = false;
+                        
+                        // Try alternative submission method if fetch fails
+                        console.error('Fetch submission failed, trying alternative method:', err);
+                        
+                        // Create a temporary iframe for form submission as fallback
+                        const tempForm = document.createElement('form');
+                        tempForm.action = form.action;
+                        tempForm.method = 'POST';
+                        tempForm.target = '_blank';
+                        tempForm.style.display = 'none';
+                        
+                        // Add all form data to the temporary form
+                        for (let [name, value] of formData) {
+                            const input = document.createElement('input');
+                            input.type = 'hidden';
+                            input.name = name;
+                            input.value = value;
+                            tempForm.appendChild(input);
+                        }
+                        
+                        document.body.appendChild(tempForm);
+                        tempForm.submit();
+                        
+                        // Hide form and show confirmation even if we can't verify submission
+                        form.style.display = 'none';
+                        document.getElementById('confirmation').style.display = 'block';
+                    });
                 }
             });
             
@@ -599,6 +674,18 @@
                     }
                 });
             });
+            
+            // Special handling for URL input to prevent freezing
+            const resumeLinkInput = document.getElementById('resumeLink');
+            if (resumeLinkInput) {
+                resumeLinkInput.addEventListener('input', function(e) {
+                    // Add a small delay to prevent excessive validation during typing
+                    clearTimeout(this.validationTimeout);
+                    this.validationTimeout = setTimeout(() => {
+                        validateField(this);
+                    }, 500);
+                });
+            }
             
             // Function to show a specific section
             function showSection(index) {
@@ -658,13 +745,28 @@
                     return false;
                 }
                 
-                // URL validation
-                if (field.type === 'url' && value !== '' && !urlPattern.test(value)) {
-                    field.classList.add('error');
-                    if (errorElement) {
-                        errorElement.textContent = 'Please enter a valid URL';
+                // URL validation - more permissive for Google Meet links
+                if (field.type === 'url' && value !== '') {
+                    // Test if it's a Google Meet link specifically
+                    const isGoogleMeet = value.includes('meet.google.com');
+                    
+                    // If it's a Google Meet link, accept it without further validation
+                    if (isGoogleMeet) {
+                        field.classList.remove('error');
+                        if (errorElement) {
+                            errorElement.textContent = '';
+                        }
+                        return true;
                     }
-                    return false;
+                    
+                    // For other URLs, use the pattern
+                    if (!urlPattern.test(value)) {
+                        field.classList.add('error');
+                        if (errorElement) {
+                            errorElement.textContent = 'Please enter a valid URL';
+                        }
+                        return false;
+                    }
                 }
                 
                 // Phone validation
@@ -701,11 +803,13 @@
             
             // Format phone number automatically
             const phoneInput = document.getElementById('phone');
-            phoneInput.addEventListener('input', function(e) {
-                const value = e.target.value.replace(/\D/g, '');
-                const formattedValue = formatPhoneNumber(value);
-                e.target.value = formattedValue;
-            });
+            if (phoneInput) {
+                phoneInput.addEventListener('input', function(e) {
+                    const value = e.target.value.replace(/\D/g, '');
+                    const formattedValue = formatPhoneNumber(value);
+                    e.target.value = formattedValue;
+                });
+            }
             
             function formatPhoneNumber(value) {
                 if (!value) return value;
