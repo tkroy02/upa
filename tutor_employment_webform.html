@@ -6,7 +6,6 @@
     <title>Tutor Application Form</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* Your existing CSS remains unchanged */
         :root {
             --bg-color: #121212;
             --form-bg: #1e1e1e;
@@ -362,7 +361,35 @@
 
         @keyframes spin {
             0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+           100% { transform: rotate(360deg); }
+        }
+
+        /* Checkbox group styles */
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 0.5rem;
+        }
+        
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            font-weight: normal;
+            cursor: pointer;
+            margin-bottom: 0;
+        }
+        
+        .checkbox-group input[type="checkbox"] {
+            width: auto;
+            margin-right: 10px;
+        }
+        
+        .checkbox-error {
+            color: var(--error-color);
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+            display: block;
         }
 
         @media (max-width: 768px) {
@@ -433,29 +460,30 @@
         </div>
         
         <form action="https://docs.google.com/forms/d/e/1FAIpQLSdB5keBhJ39iZqC5nJ-quiEAZRcfsoSmg8AVEnNrgCXEDFO3g/formResponse" method="POST" id="tutorApplicationForm" target="_self">
+            <!-- Section 1: Personal Information -->
             <div class="form-section" id="section1">
                 <h2><i class="fas fa-user"></i> Personal Information</h2>
                 <div class="form-row">
                     <div class="form-group">
                         <label for="firstName" class="required">First Name</label>
-                        <input type="text" id="firstName" name="entry.45720415" required>
+                        <input type="text" id="firstName" name="entry.299290191" required aria-describedby="firstNameError">
                         <div class="error-message" id="firstNameError"></div>
                     </div>
                     <div class="form-group">
                         <label for="lastName" class="required">Last Name</label>
-                        <input type="text" id="lastName" name="entry.45684760" required>
+                        <input type="text" id="lastName" name="entry.1069888029" required aria-describedby="lastNameError">
                         <div class="error-message" id="lastNameError"></div>
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
                         <label for="email" class="required">Email Address</label>
-                        <input type="email" id="email" name="entry.45681910" required>
+                        <input type="email" id="email" name="entry.1265275658" required aria-describedby="emailError">
                         <div class="error-message" id="emailError"></div>
                     </div>
                     <div class="form-group">
                         <label for="phone">Phone Number</label>
-                        <input type="tel" id="phone" name="entry.45662509" placeholder="(123) 456-7890">
+                        <input type="tel" id="phone" name="entry.408876684" placeholder="(123) 456-7890" aria-describedby="phoneError">
                         <div class="error-message" id="phoneError"></div>
                     </div>
                 </div>
@@ -465,12 +493,13 @@
                 </div>
             </div>
 
+            <!-- Section 2: Academic Qualifications -->
             <div class="form-section" id="section2" style="display: none;">
                 <h2><i class="fas fa-graduation-cap"></i> Academic Qualifications</h2>
                 <div class="form-row">
                     <div class="form-group">
                         <label for="degree" class="required">Highest Degree</label>
-                        <select id="degree" name="entry.45713329" required>
+                        <select id="degree" name="entry.702530678" required aria-describedby="degreeError">
                             <option value="">Select your highest degree</option>
                             <option value="High School">High School Diploma</option>
                             <option value="Associate">Associate Degree</option>
@@ -483,13 +512,13 @@
                     </div>
                     <div class="form-group">
                         <label for="fieldOfStudy" class="required">Field of Study</label>
-                        <input type="text" id="fieldOfStudy" name="entry.45657263" required placeholder="e.g., Mathematics, English Literature">
+                        <input type="text" id="fieldOfStudy" name="entry.2105147017" required placeholder="e.g., Mathematics, English Literature" aria-describedby="fieldError">
                         <div class="error-message" id="fieldError"></div>
                     </div>
                 </div>
                 <div class="form-group">
                     <label for="university" class="required">University / Institution</label>
-                    <input type="text" id="university" name="entry.45683309" required placeholder="e.g., Harvard University">
+                    <input type="text" id="university" name="entry.183249923" value="" required placeholder="e.g., Harvard University" aria-describedby="universityError">
                     <div class="error-message" id="universityError"></div>
                 </div>
                 <div class="form-group">
@@ -499,7 +528,7 @@
                             <span class="tooltiptext">List all subjects separated by commas</span>
                         </div>
                     </label>
-                    <textarea id="subjects" name="entry.45712870" rows="4" required placeholder="e.g., Algebra, Calculus, Geometry, Statistics"></textarea>
+                    <textarea id="subjects" name="entry.489044324" rows="4" required placeholder="e.g., Algebra, Calculus, Geometry, Statistics" aria-describedby="subjectsError"></textarea>
                     <div class="error-message" id="subjectsError"></div>
                 </div>
                 <div class="form-navigation">
@@ -508,34 +537,50 @@
                 </div>
             </div>
 
+            <!-- Section 3: Experience & Preferences -->
             <div class="form-section" id="section3" style="display: none;">
                 <h2><i class="fas fa-briefcase"></i> Experience & Preferences</h2>
                 <div class="form-row">
                     <div class="form-group">
                         <label for="experience">Years of Tutoring Experience</label>
-                        <input type="number" id="experience" name="entry.45674978" min="0" max="50" placeholder="e.g., 2">
+                        <input type="number" id="experience" name="entry.1493564848" min="0" max="50" placeholder="e.g., 2" aria-describedby="experienceError">
                         <div class="error-message" id="experienceError"></div>
                     </div>
                     <div class="form-group">
-                        <label for="preferredAgeGroups">Preferred Age Groups</label>
-                        <select id="preferredAgeGroups" name="entry.45658679" multiple size="3">
-                            <option value="Elementary (K-5)">Elementary (K-5)</option>
-                            <option value="Middle School (6-8)">Middle School (6-8)</option>
-                            <option value="High School (9-12)">High School (9-12)</option>
-                            <option value="College/University">College/University</option>
-                            <option value="Adult Learners">Adult Learners</option>
-                        </select>
-                        <div class="form-hint">Hold Ctrl/Cmd to select multiple options</div>
+                        <label class="required">Preferred Age Groups</label>
+                        <div class="checkbox-group">
+                            <label>
+                                <input type="checkbox" name="entry.580864635" value="Elementary (K-5)">
+                                Elementary (K-5)
+                            </label>
+                            <label>
+                                <input type="checkbox" name="entry.580864635" value="Middle School (6-8)">
+                                Middle School (6-8)
+                            </label>
+                            <label>
+                                <input type="checkbox" name="entry.580864635" value="High School (9-12)">
+                                High School (9-12)
+                            </label>
+                            <label>
+                                <input type="checkbox" name="entry.580864635" value="College/University">
+                                College/University
+                            </label>
+                            <label>
+                                <input type="checkbox" name="entry.580864635" value="Adult Learners">
+                                Adult Learners
+                            </label>
+                        </div>
+                        <div class="checkbox-error" id="ageGroupsError"></div>
                     </div>
                 </div>
                 <div class="form-group">
                     <label for="resumeLink" class="required">Link to Resume / CV</label>
-                    <input type="url" id="resumeLink" name="entry.45720792" required placeholder="https://drive.google.com/...">
+                    <input type="url" id="resumeLink" name="entry.47691396" required placeholder="https://drive.google.com/..." aria-describedby="resumeError">
                     <div class="error-message" id="resumeError"></div>
                 </div>
                 <div class="form-group">
                     <label for="additionalMessage">Additional Message (Optional)</label>
-                    <textarea id="additionalMessage" name="entry.45720414" rows="3" placeholder="Tell us why you'd like to become a tutor..."></textarea>
+                    <textarea id="additionalMessage" name="entry.1361626610" rows="3" placeholder="Tell us why you'd like to become a tutor..."></textarea>
                 </div>
                 <div class="form-navigation">
                     <button type="button" class="prev"><i class="fas fa-arrow-left"></i> Previous</button>
@@ -600,6 +645,24 @@
                 e.preventDefault();
                 
                 if (validateSection(currentSection)) {
+                    // Validate age groups (checkboxes)
+                    const ageGroupCheckboxes = document.querySelectorAll('input[name="entry.580864635"]');
+                    const ageGroupsError = document.getElementById('ageGroupsError');
+                    let atLeastOneChecked = false;
+                    
+                    ageGroupCheckboxes.forEach(checkbox => {
+                        if (checkbox.checked) {
+                            atLeastOneChecked = true;
+                        }
+                    });
+                    
+                    if (!atLeastOneChecked) {
+                        ageGroupsError.textContent = 'Please select at least one age group';
+                        return;
+                    } else {
+                        ageGroupsError.textContent = '';
+                    }
+                    
                     // Show loading state
                     submitButton.classList.add('loading');
                     submitButton.disabled = true;
