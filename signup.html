@@ -432,7 +432,7 @@
                     <input type="password" id="password" class="form-control" placeholder="Password" required minlength="6">
                     <i class="fas fa-eye password-toggle" id="passwordToggle"></i>
                     <div class="error-message" id="passwordError"></div>
-                    <div class="password-streight" id="passwordStrength" style="display: none;">
+                    <div class="password-strength" id="passwordStrength" style="display: none;">
                         <div class="strength-bar">
                             <div class="strength-fill" id="strengthFill"></div>
                         </div>
@@ -464,11 +464,16 @@
             <p id="signupMsg" role="alert"></p>
             
             <div class="footer">
-                Already have an account? <a href="#">Login here</a>
+                Already have an account? <a href="login.html">Login here</a>
             </div>
         </div>
     </div>
-    <script>
+    <script type="module">
+        // Import Firebase functions
+        import { auth, db } from './scheduler-firebase.js';
+        import { createUserWithEmailAndPassword, sendEmailVerification } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+        import { doc, setDoc } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
+
         document.addEventListener('DOMContentLoaded', () => {
             const form = document.getElementById("signupForm");
             const signupBtn = document.getElementById("signupBtn");
@@ -539,229 +544,4 @@
                 return null;
             }
 
-            function validatePassword(password) {
-                if (!password) {
-                    return "Password is required";
-                }
-                if (password.length < 6) {
-                    return "Password must be at least 6 characters long";
-                }
-                return null;
-            }
-
-            function checkPasswordStrength(password) {
-                const strengthIndicator = document.getElementById('passwordStrength');
-                const strengthFill = document.getElementById('strengthFill');
-                const strengthText = document.getElementById('strengthText');
-                
-                if (!password) {
-                    strengthIndicator.style.display = 'none';
-                    return;
-                }
-                
-                strengthIndicator.style.display = 'block';
-                
-                let strength = 0;
-                let text = '';
-                let color = '';
-                
-                // Check criteria
-                if (password.length >= 6) strength += 20;
-                if (password.length >= 10) strength += 20;
-                if (/[a-z]/.test(password)) strength += 20;
-                if (/[A-Z]/.test(password)) strength += 20;
-                if (/[0-9]/.test(password)) strength += 10;
-                if (/[^a-zA-Z0-9]/.test(password)) strength += 10;
-                
-                if (strength < 40) {
-                    text = 'Weak';
-                    color = '#e63946';
-                } else if (strength < 70) {
-                    text = 'Fair';
-                    color = '#ffc107';
-                } else if (strength < 90) {
-                    text = 'Good';
-                    color = '#28a745';
-                } else {
-                    text = 'Strong';
-                    color = '#4cc9f0';
-                }
-                
-                strengthFill.style.width = strength + '%';
-                strengthFill.style.backgroundColor = color;
-                strengthText.textContent = text;
-                strengthText.style.color = color;
-            }
-
-            function showFieldError(fieldId, message) {
-                const group = document.getElementById(fieldId + 'Group');
-                const error = document.getElementById(fieldId + 'Error');
-                group.classList.add('error');
-                error.textContent = message;
-            }
-
-            function clearFieldError(fieldId) {
-                const group = document.getElementById(fieldId + 'Group');
-                const error = document.getElementById(fieldId + 'Error');
-                const input = document.getElementById(fieldId);
-                group.classList.remove('error');
-                error.textContent = '';
-                if (input.value.trim()) {
-                    input.classList.add('valid');
-                } else {
-                    input.classList.remove('valid');
-                }
-            }
-
-            function showMessage(message, type) {
-                signupMsg.textContent = message;
-                signupMsg.className = type + ' visible';
-                
-                if (type === 'error') {
-                    form.classList.add('shake');
-                    setTimeout(() => form.classList.remove('shake'), 600);
-                }
-                
-                // Auto-hide success messages after 5 seconds
-                if (type === 'success') {
-                    setTimeout(() => {
-                        signupMsg.classList.remove('visible');
-                        setTimeout(() => {
-                            signupMsg.className = '';
-                            signupMsg.textContent = '';
-                        }, 300);
-                    }, 5000);
-                }
-            }
-
-            // Real-time validation
-            nameInput.addEventListener('input', () => {
-                const error = validateName(nameInput.value);
-                if (error) {
-                    showFieldError('name', error);
-                } else {
-                    clearFieldError('name');
-                }
-            });
-
-            emailInput.addEventListener('input', () => {
-                const error = validateEmail(emailInput.value);
-                if (error) {
-                    showFieldError('email', error);
-                } else {
-                    clearFieldError('email');
-                }
-            });
-
-            passwordInput.addEventListener('input', () => {
-                const password = passwordInput.value;
-                const error = validatePassword(password);
-                
-                if (error) {
-                    showFieldError('password', error);
-                } else {
-                    clearFieldError('password');
-                }
-                
-                checkPasswordStrength(password);
-            });
-
-            // Enhanced form submission with comprehensive validation
-            form.addEventListener("submit", (e) => {
-                e.preventDefault();
-                
-                // Clear previous messages
-                signupMsg.textContent = "";
-                signupMsg.className = "";
-                
-                // Get form data
-                const formData = {
-                    name: nameInput.value.trim(),
-                    email: emailInput.value.trim(),
-                    password: passwordInput.value,
-                    role: document.querySelector('input[name="role"]:checked').value
-                };
-                
-                // Validate all fields
-                const nameError = validateName(formData.name);
-                const emailError = validateEmail(formData.email);
-                const passwordError = validatePassword(formData.password);
-                
-                let hasErrors = false;
-                
-                if (nameError) {
-                    showFieldError('name', nameError);
-                    hasErrors = true;
-                } else {
-                    clearFieldError('name');
-                }
-                
-                if (emailError) {
-                    showFieldError('email', emailError);
-                    hasErrors = true;
-                } else {
-                    clearFieldError('email');
-                }
-                
-                if (passwordError) {
-                    showFieldError('password', passwordError);
-                    hasErrors = true;
-                } else {
-                    clearFieldError('password');
-                }
-                
-                if (hasErrors) {
-                    showMessage("Please correct the errors above.", "error");
-                    return;
-                }
-                
-                // Additional email format check
-                if (!emailError && !formData.email.includes('@')) {
-                    showFieldError('email', 'Please enter a valid email address');
-                    showMessage("Please enter a valid email address.", "error");
-                    return;
-                }
-                
-                // Check for common password patterns
-                if (formData.password.toLowerCase() === 'password' || 
-                    formData.password === '123456' || 
-                    formData.password === formData.name.toLowerCase()) {
-                    showFieldError('password', 'Please choose a stronger password');
-                    showMessage("Please choose a more secure password.", "warning");
-                    return;
-                }
-                
-                // Simulate successful signup (since we're not connecting to Firebase)
-                signupBtn.disabled = true;
-                signupBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating Account...';
-                
-                // Simulate API call delay
-                setTimeout(() => {
-                    const selectedRole = formData.role;
-                    const roleText = selectedRole === 'student' ? 'Student' : 'Tutor';
-                    
-                    // Success message
-                    showMessage(`🎉 Welcome ${formData.name}! Your ${roleText} account has been created successfully.`, "success");
-                    
-                    // Reset form
-                    form.reset();
-                    document.getElementById('passwordStrength').style.display = 'none';
-                    
-                    // Reset role selection
-                    roleBoxes.forEach(box => box.classList.remove('active'));
-                    roleBoxes[0].classList.add('active'); // Default to student
-                    
-                    // Clear all field validations
-                    document.querySelectorAll('.form-control').forEach(input => {
-                        input.classList.remove('valid');
-                    });
-                    
-                    // Reset button state
-                    signupBtn.disabled = false;
-                    signupBtn.innerHTML = '<i class="fas fa-user-plus"></i> Create Account';
-                }, 1500);
-            });
-        });
-    </script>
-</body>
-</html>
+            function validate
