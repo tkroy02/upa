@@ -277,33 +277,33 @@
             margin-top: 20px;
             text-align: center;
             font-weight: 500;
-            visibility: hidden;
             opacity: 0;
-            transition: opacity 0.5s ease, visibility 0.5s ease;
+            max-height: 0;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        #signupMsg.visible {
+            opacity: 1;
+            max-height: 200px;
         }
         
         .success {
             background-color: rgba(76, 201, 240, 0.15);
             color: var(--success);
             border: 1px solid var(--success);
-            visibility: visible;
-            opacity: 1;
         }
         
         .error {
             background-color: rgba(230, 57, 70, 0.15);
             color: var(--error);
             border: 1px solid var(--error);
-            visibility: visible;
-            opacity: 1;
         }
         
         .warning {
             background-color: rgba(255, 193, 7, 0.15);
             color: var(--warning);
             border: 1px solid var(--warning);
-            visibility: visible;
-            opacity: 1;
         }
         
         .footer {
@@ -432,7 +432,7 @@
                     <input type="password" id="password" class="form-control" placeholder="Password" required minlength="6">
                     <i class="fas fa-eye password-toggle" id="passwordToggle"></i>
                     <div class="error-message" id="passwordError"></div>
-                    <div class="password-strength" id="passwordStrength" style="display: none;">
+                    <div class="password-streight" id="passwordStrength" style="display: none;">
                         <div class="strength-bar">
                             <div class="strength-fill" id="strengthFill"></div>
                         </div>
@@ -615,11 +615,22 @@
 
             function showMessage(message, type) {
                 signupMsg.textContent = message;
-                signupMsg.className = type;
+                signupMsg.className = type + ' visible';
                 
                 if (type === 'error') {
                     form.classList.add('shake');
                     setTimeout(() => form.classList.remove('shake'), 600);
+                }
+                
+                // Auto-hide success messages after 5 seconds
+                if (type === 'success') {
+                    setTimeout(() => {
+                        signupMsg.classList.remove('visible');
+                        setTimeout(() => {
+                            signupMsg.className = '';
+                            signupMsg.textContent = '';
+                        }, 300);
+                    }, 5000);
                 }
             }
 
@@ -720,102 +731,35 @@
                     return;
                 }
                 
-                // Firebase signup process
-                const selectedRole = formData.role;
-                const roleText = selectedRole === 'student' ? 'Student' : 'Tutor';
-                
+                // Simulate successful signup (since we're not connecting to Firebase)
                 signupBtn.disabled = true;
                 signupBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating Account...';
                 
-                // Create user with Firebase Auth
-                createUserWithEmailAndPassword(auth, formData.email, formData.password)
-                    .then(async (userCredential) => {
-                        const user = userCredential.user;
-                        
-                        try {
-                            // Update the user's display name
-                            await updateProfile(user, {
-                                displayName: formData.name
-                            });
-                            
-                            // Save additional user data to Firestore
-                            await setDoc(doc(db, 'users', user.uid), {
-                                name: formData.name,
-                                email: formData.email,
-                                role: formData.role,
-                                createdAt: new Date().toISOString(),
-                                lastLogin: new Date().toISOString(),
-                                profileComplete: false
-                            });
-                            
-                            // Success message
-                            showMessage(`🎉 Welcome ${formData.name}! Your ${roleText} account has been created successfully.`, "success");
-                            
-                            // Optional: Send email verification
-                            if (!user.emailVerified) {
-                                await sendEmailVerification(user);
-                                showMessage(`Account created! Please check ${formData.email} to verify your email address.`, "success");
-                            }
-                            
-                            // Reset form
-                            form.reset();
-                            document.getElementById('passwordStrength').style.display = 'none';
-                            
-                            // Reset role selection
-                            roleBoxes.forEach(box => box.classList.remove('active'));
-                            roleBoxes[0].classList.add('active'); // Default to student
-                            
-                            // Clear all field validations
-                            document.querySelectorAll('.form-control').forEach(input => {
-                                input.classList.remove('valid');
-                            });
-                            
-                            // Optional: Redirect after successful signup
-                            setTimeout(() => {
-                                // window.location.href = 'dashboard.html'; // Uncomment if you have a dashboard
-                            }, 2000);
-                            
-                        } catch (firestoreError) {
-                            console.error('Error saving user data:', firestoreError);
-                            showMessage("Account created but there was an error saving your profile. Please try logging in.", "warning");
-                        }
-                    })
-                    .catch((error) => {
-                        console.error('Firebase Auth Error:', error);
-                        
-                        // Handle specific Firebase auth errors
-                        let errorMessage = "An error occurred during signup. Please try again.";
-                        
-                        switch (error.code) {
-                            case 'auth/email-already-in-use':
-                                errorMessage = "This email address is already registered. Try logging in instead.";
-                                showFieldError('email', 'Email already in use');
-                                break;
-                            case 'auth/weak-password':
-                                errorMessage = "Password is too weak. Please choose a stronger password.";
-                                showFieldError('password', 'Password too weak');
-                                break;
-                            case 'auth/invalid-email':
-                                errorMessage = "Please enter a valid email address.";
-                                showFieldError('email', 'Invalid email format');
-                                break;
-                            case 'auth/operation-not-allowed':
-                                errorMessage = "Email/password accounts are not enabled. Please contact support.";
-                                break;
-                            case 'auth/network-request-failed':
-                                errorMessage = "Network error. Please check your connection and try again.";
-                                break;
-                            default:
-                                errorMessage = `Error: ${error.message}`;
-                        }
-                        
-                        showMessage(errorMessage, "error");
-                    })
-                    .finally(() => {
-                        // Reset button state
-                        signupBtn.disabled = false;
-                        signupBtn.innerHTML = '<i class="fas fa-user-plus"></i> Create Account';
+                // Simulate API call delay
+                setTimeout(() => {
+                    const selectedRole = formData.role;
+                    const roleText = selectedRole === 'student' ? 'Student' : 'Tutor';
+                    
+                    // Success message
+                    showMessage(`🎉 Welcome ${formData.name}! Your ${roleText} account has been created successfully.`, "success");
+                    
+                    // Reset form
+                    form.reset();
+                    document.getElementById('passwordStrength').style.display = 'none';
+                    
+                    // Reset role selection
+                    roleBoxes.forEach(box => box.classList.remove('active'));
+                    roleBoxes[0].classList.add('active'); // Default to student
+                    
+                    // Clear all field validations
+                    document.querySelectorAll('.form-control').forEach(input => {
+                        input.classList.remove('valid');
                     });
+                    
+                    // Reset button state
+                    signupBtn.disabled = false;
+                    signupBtn.innerHTML = '<i class="fas fa-user-plus"></i> Create Account';
+                }, 1500);
             });
         });
     </script>
