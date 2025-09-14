@@ -720,33 +720,102 @@
                     return;
                 }
                 
-                // Simulate success
+                // Firebase signup process
                 const selectedRole = formData.role;
                 const roleText = selectedRole === 'student' ? 'Student' : 'Tutor';
                 
                 signupBtn.disabled = true;
                 signupBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating Account...';
                 
-                // Simulate API call delay
-                setTimeout(() => {
-                    showMessage(`🎉 Welcome ${formData.name}! Your ${roleText} account has been created successfully.`, "success");
-                    form.reset();
-                    document.getElementById('passwordStrength').style.display = 'none';
-                    
-                    // Reset role selection
-                    roleBoxes.forEach(box => box.classList.remove('active'));
-                    roleBoxes[0].classList.add('active'); // Default to student
-                    
-                    // Reset button
-                    signupBtn.disabled = false;
-                    signupBtn.innerHTML = '<i class="fas fa-user-plus"></i> Create Account';
-                    
-                    // Clear all field validations
-                    document.querySelectorAll('.form-control').forEach(input => {
-                        input.classList.remove('valid');
+                // Create user with Firebase Auth
+                createUserWithEmailAndPassword(auth, formData.email, formData.password)
+                    .then(async (userCredential) => {
+                        const user = userCredential.user;
+                        
+                        try {
+                            // Update the user's display name
+                            await updateProfile(user, {
+                                displayName: formData.name
+                            });
+                            
+                            // Save additional user data to Firestore
+                            await setDoc(doc(db, 'users', user.uid), {
+                                name: formData.name,
+                                email: formData.email,
+                                role: formData.role,
+                                createdAt: new Date().toISOString(),
+                                lastLogin: new Date().toISOString(),
+                                profileComplete: false
+                            });
+                            
+                            // Success message
+                            showMessage(`🎉 Welcome ${formData.name}! Your ${roleText} account has been created successfully.`, "success");
+                            
+                            // Optional: Send email verification
+                            if (!user.emailVerified) {
+                                await sendEmailVerification(user);
+                                showMessage(`Account created! Please check ${formData.email} to verify your email address.`, "success");
+                            }
+                            
+                            // Reset form
+                            form.reset();
+                            document.getElementById('passwordStrength').style.display = 'none';
+                            
+                            // Reset role selection
+                            roleBoxes.forEach(box => box.classList.remove('active'));
+                            roleBoxes[0].classList.add('active'); // Default to student
+                            
+                            // Clear all field validations
+                            document.querySelectorAll('.form-control').forEach(input => {
+                                input.classList.remove('valid');
+                            });
+                            
+                            // Optional: Redirect after successful signup
+                            setTimeout(() => {
+                                // window.location.href = 'dashboard.html'; // Uncomment if you have a dashboard
+                            }, 2000);
+                            
+                        } catch (firestoreError) {
+                            console.error('Error saving user data:', firestoreError);
+                            showMessage("Account created but there was an error saving your profile. Please try logging in.", "warning");
+                        }
+                    })
+                    .catch((error) => {
+                        console.error('Firebase Auth Error:', error);
+                        
+                        // Handle specific Firebase auth errors
+                        let errorMessage = "An error occurred during signup. Please try again.";
+                        
+                        switch (error.code) {
+                            case 'auth/email-already-in-use':
+                                errorMessage = "This email address is already registered. Try logging in instead.";
+                                showFieldError('email', 'Email already in use');
+                                break;
+                            case 'auth/weak-password':
+                                errorMessage = "Password is too weak. Please choose a stronger password.";
+                                showFieldError('password', 'Password too weak');
+                                break;
+                            case 'auth/invalid-email':
+                                errorMessage = "Please enter a valid email address.";
+                                showFieldError('email', 'Invalid email format');
+                                break;
+                            case 'auth/operation-not-allowed':
+                                errorMessage = "Email/password accounts are not enabled. Please contact support.";
+                                break;
+                            case 'auth/network-request-failed':
+                                errorMessage = "Network error. Please check your connection and try again.";
+                                break;
+                            default:
+                                errorMessage = `Error: ${error.message}`;
+                        }
+                        
+                        showMessage(errorMessage, "error");
+                    })
+                    .finally(() => {
+                        // Reset button state
+                        signupBtn.disabled = false;
+                        signupBtn.innerHTML = '<i class="fas fa-user-plus"></i> Create Account';
                     });
-                    
-                }, 1500);
             });
         });
     </script>
