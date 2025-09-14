@@ -5,6 +5,41 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tutor Application Form</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Firebase SDK -->
+    <script type="module">
+        // Import the functions you need from the SDKs you need 
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-analytics.js";
+        import { getFirestore, collection, addDoc, serverTimestamp, setDoc, doc } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
+        
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyB7kEmwe4Wg_Bz7V1DWQDJO9uGVBoerzpw",
+            authDomain: "tk-webforms.firebaseapp.com",
+            projectId: "tk-webforms",
+            storageBucket: "tk-webforms.firebasestorage.app",
+            messagingSenderId: "576076127886",
+            appId: "1:576076127886:web:95365a360116709f0d33df",
+            measurementId: "G-888MK9XWGX"
+        };
+        
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const db = getFirestore(app);
+        
+        // Make Firebase available globally
+        window.firebase = {
+            db,
+            collection,
+            addDoc,
+            serverTimestamp,
+            setDoc,
+            doc
+        };
+    </script>
+    
     <style>
         :root {
             --bg-color: #121212;
@@ -459,31 +494,31 @@
             </div>
         </div>
         
-        <form action="https://docs.google.com/forms/d/e/1FAIpQLSdB5keBhJ39iZqC5nJ-quiEAZRcfsoSmg8AVEnNrgCXEDFO3g/formResponse" method="POST" id="tutorApplicationForm" target="_self">
+        <form id="tutorApplicationForm" target="_self">
             <!-- Section 1: Personal Information -->
             <div class="form-section" id="section1">
                 <h2><i class="fas fa-user"></i> Personal Information</h2>
                 <div class="form-row">
                     <div class="form-group">
                         <label for="firstName" class="required">First Name</label>
-                        <input type="text" id="firstName" name="entry.299290191" required aria-describedby="firstNameError">
+                        <input type="text" id="firstName" name="firstName" required aria-describedby="firstNameError">
                         <div class="error-message" id="firstNameError"></div>
                     </div>
                     <div class="form-group">
                         <label for="lastName" class="required">Last Name</label>
-                        <input type="text" id="lastName" name="entry.1069888029" required aria-describedby="lastNameError">
+                        <input type="text" id="lastName" name="lastName" required aria-describedby="lastNameError">
                         <div class="error-message" id="lastNameError"></div>
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
                         <label for="email" class="required">Email Address</label>
-                        <input type="email" id="email" name="entry.1265275658" required aria-describedby="emailError">
+                        <input type="email" id="email" name="email" required aria-describedby="emailError">
                         <div class="error-message" id="emailError"></div>
                     </div>
                     <div class="form-group">
                         <label for="phone">Phone Number</label>
-                        <input type="tel" id="phone" name="entry.408876684" placeholder="(123) 456-7890" aria-describedby="phoneError">
+                        <input type="tel" id="phone" name="phone" placeholder="(123) 456-7890" aria-describedby="phoneError">
                         <div class="error-message" id="phoneError"></div>
                     </div>
                 </div>
@@ -499,7 +534,7 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label for="degree" class="required">Highest Degree</label>
-                        <select id="degree" name="entry.702530678" required aria-describedby="degreeError">
+                        <select id="degree" name="degree" required aria-describedby="degreeError">
                             <option value="">Select your highest degree</option>
                             <option value="High School">High School Diploma</option>
                             <option value="Associate">Associate Degree</option>
@@ -512,13 +547,13 @@
                     </div>
                     <div class="form-group">
                         <label for="fieldOfStudy" class="required">Field of Study</label>
-                        <input type="text" id="fieldOfStudy" name="entry.2105147017" required placeholder="e.g., Mathematics, English Literature" aria-describedby="fieldError">
+                        <input type="text" id="fieldOfStudy" name="fieldOfStudy" required placeholder="e.g., Mathematics, English Literature" aria-describedby="fieldError">
                         <div class="error-message" id="fieldError"></div>
                     </div>
                 </div>
                 <div class="form-group">
                     <label for="university" class="required">University / Institution</label>
-                    <input type="text" id="university" name="entry.183249923" value="" required placeholder="e.g., Harvard University" aria-describedby="universityError">
+                    <input type="text" id="university" name="university" value="" required placeholder="e.g., Harvard University" aria-describedby="universityError">
                     <div class="error-message" id="universityError"></div>
                 </div>
                 <div class="form-group">
@@ -528,7 +563,7 @@
                             <span class="tooltiptext">List all subjects separated by commas</span>
                         </div>
                     </label>
-                    <textarea id="subjects" name="entry.489044324" rows="4" required placeholder="e.g., Algebra, Calculus, Geometry, Statistics" aria-describedby="subjectsError"></textarea>
+                    <textarea id="subjects" name="subjects" rows="4" required placeholder="e.g., Algebra, Calculus, Geometry, Statistics" aria-describedby="subjectsError"></textarea>
                     <div class="error-message" id="subjectsError"></div>
                 </div>
                 <div class="form-navigation">
@@ -543,7 +578,7 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label for="experience">Years of Tutoring Experience</label>
-                        <input type="number" id="experience" name="entry.1493564848" min="0" max="50" placeholder="e.g., 2" aria-describedby="experienceError">
+                        <input type="number" id="experience" name="experience" min="0" max="50" placeholder="e.g., 2" aria-describedby="experienceError">
                         <div class="error-message" id="experienceError"></div>
                     </div>
                     <div class="form-group">
@@ -575,12 +610,12 @@
                 </div>
                 <div class="form-group">
                     <label for="resumeLink" class="required">Link to Resume / CV</label>
-                    <input type="url" id="resumeLink" name="entry.47691396" required placeholder="https://drive.google.com/..." aria-describedby="resumeError">
+                    <input type="url" id="resumeLink" name="resumeLink" required placeholder="https://drive.google.com/..." aria-describedby="resumeError">
                     <div class="error-message" id="resumeError"></div>
                 </div>
                 <div class="form-group">
                     <label for="additionalMessage">Additional Message (Optional)</label>
-                    <textarea id="additionalMessage" name="entry.1361626610" rows="3" placeholder="Tell us why you'd like to become a tutor..."></textarea>
+                    <textarea id="additionalMessage" name="additionalMessage" rows="3" placeholder="Tell us why you'd like to become a tutor..."></textarea>
                 </div>
                 <div class="form-navigation">
                     <button type="button" class="prev"><i class="fas fa-arrow-left"></i> Previous</button>
@@ -640,8 +675,8 @@
                 });
             });
             
-            // Form submission - FIXED VERSION
-            form.addEventListener('submit', function(e) {
+            // Form submission - FIREBASE VERSION
+            form.addEventListener('submit', async function(e) {
                 e.preventDefault();
                 
                 if (validateSection(currentSection)) {
@@ -663,59 +698,55 @@
                         ageGroupsError.textContent = '';
                     }
                     
+                    // Email validation
+                    const emailField = form.querySelector("#email");
+                    if (!emailField.value.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+                        alert("Please enter a valid email");
+                        emailField.focus();
+                        return;
+                    }
+                    
                     // Show loading state
                     submitButton.classList.add('loading');
                     submitButton.disabled = true;
                     
-                    // Create a more reliable form submission approach
-                    const formData = new FormData(form);
-                    
-                    // Send form data to Google via fetch with better error handling
-                    fetch(form.action, {
-                        method: 'POST',
-                        body: formData,
-                        mode: 'no-cors',
-                        redirect: 'follow'
-                    })
-                    .then(response => {
-                        // Even with no-cors, we can check if the request was made
-                        console.log('Form submitted successfully');
+                    try {
+                        // Collect all field values
+                        const data = {
+                            firstName: form.querySelector("#firstName").value.trim(),
+                            lastName: form.querySelector("#lastName").value.trim(),
+                            email: form.querySelector("#email").value.trim(),
+                            phone: form.querySelector("#phone").value.trim(),
+                            degree: form.querySelector("#degree").value,
+                            fieldOfStudy: form.querySelector("#fieldOfStudy").value.trim(),
+                            university: form.querySelector("#university").value.trim(),
+                            subjects: form.querySelector("#subjects").value.trim(),
+                            experience: form.querySelector("#experience").value,
+                            ageGroups: Array.from(form.querySelectorAll('input[name="entry.580864635"]:checked')).map(cb => cb.value),
+                            resumeLink: form.querySelector("#resumeLink").value.trim(),
+                            additionalMessage: form.querySelector("#additionalMessage").value.trim(),
+                            submittedAt: firebase.serverTimestamp()
+                        };
+                        
+                        // Save to Firestore using setDoc instead of addDoc
+                        // Generate a unique ID for the document
+                        const docRef = firebase.doc(firebase.db, "Job_Applications", Date.now().toString());
+                        await firebase.setDoc(docRef, data);
+                        console.log("Application submitted successfully!");
                         
                         // Hide form and show confirmation
                         form.style.display = 'none';
                         document.getElementById('confirmation').style.display = 'block';
-                    })
-                    .catch(err => {
+                        form.reset();
+                    } catch (err) {
+                        console.error("Error saving application:", err);
+                        
                         // Reset button state on error
                         submitButton.classList.remove('loading');
                         submitButton.disabled = false;
                         
-                        // Try alternative submission method if fetch fails
-                        console.error('Fetch submission failed, trying alternative method:', err);
-                        
-                        // Create a temporary iframe for form submission as fallback
-                        const tempForm = document.createElement('form');
-                        tempForm.action = form.action;
-                        tempForm.method = 'POST';
-                        tempForm.target = '_blank';
-                        tempForm.style.display = 'none';
-                        
-                        // Add all form data to the temporary form
-                        for (let [name, value] of formData) {
-                            const input = document.createElement('input');
-                            input.type = 'hidden';
-                            input.name = name;
-                            input.value = value;
-                            tempForm.appendChild(input);
-                        }
-                        
-                        document.body.appendChild(tempForm);
-                        tempForm.submit();
-                        
-                        // Hide form and show confirmation even if we can't verify submission
-                        form.style.display = 'none';
-                        document.getElementById('confirmation').style.display = 'block';
-                    });
+                        alert("Failed to submit application. Please try again.");
+                    }
                 }
             });
             
