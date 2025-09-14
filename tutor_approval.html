@@ -3,45 +3,321 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tutor Signup</title>
+    <title>Tutor Signup | Education Platform</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: Arial, sans-serif; padding: 20px; }
-        form { max-width: 400px; margin: auto; }
-        input, button { width: 100%; padding: 10px; margin: 10px 0; }
-        button { cursor: pointer; }
+        :root {
+            --primary: #4361ee;
+            --secondary: #3a0ca3;
+            --accent: #f72585;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --success: #4cc9f0;
+            --error: #e63946;
+            --gray: #6c757d;
+            --border-radius: 12px;
+            --box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: var(--dark);
+            line-height: 1.6;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 450px;
+            animation: fadeIn 0.8s ease;
+        }
+        
+        .card {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 35px;
+            transition: var(--transition);
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .logo {
+            color: var(--primary);
+            font-size: 28px;
+            margin-bottom: 15px;
+        }
+        
+        .header h2 {
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        .header p {
+            color: var(--gray);
+            font-size: 16px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+        
+        .input-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray);
+            font-size: 18px;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 15px 15px 15px 50px;
+            border: 2px solid #e6e6e6;
+            border-radius: var(--border-radius);
+            font-size: 16px;
+            transition: var(--transition);
+            background-color: #fafafa;
+        }
+        
+        .form-control:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
+            outline: none;
+            background-color: white;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
+        }
+        
+        .btn:hover {
+            background: linear-gradient(to right, var(--secondary), var(--primary));
+            box-shadow: 0 6px 20px rgba(67, 97, 238, 0.4);
+            transform: translateY(-2px);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        #message {
+            padding: 15px;
+            border-radius: var(--border-radius);
+            margin-top: 20px;
+            text-align: center;
+            font-weight: 500;
+            display: none;
+        }
+        
+        .success {
+            background-color: rgba(76, 201, 240, 0.15);
+            color: var(--success);
+            border: 1px solid var(--success);
+            display: block;
+        }
+        
+        .error {
+            background-color: rgba(230, 57, 70, 0.15);
+            color: var(--error);
+            border: 1px solid var(--error);
+            display: block;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: var(--gray);
+            font-size: 14px;
+        }
+        
+        .footer a {
+            color: var(--primary);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+        
+        .footer a:hover {
+            color: var(--secondary);
+            text-decoration: underline;
+        }
+        
+        .password-toggle {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: var(--gray);
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            15%, 45%, 75% { transform: translateX(-10px); }
+            30%, 60%, 90% { transform: translateX(10px); }
+        }
+        
+        .shake {
+            animation: shake 0.6s ease;
+        }
+        
+        @media (max-width: 500px) {
+            .card {
+                padding: 25px;
+            }
+            
+            .header h2 {
+                font-size: 24px;
+            }
+        }
     </style>
 </head>
 <body>
-    <h2>Tutor Signup</h2>
-    <form id="tutorSignupForm">
-        <input type="text" id="name" placeholder="Full Name" required>
-        <input type="email" id="email" placeholder="Email" required>
-        <input type="password" id="password" placeholder="Password" required>
-        <button type="submit">Sign Up</button>
-    </form>
-
-    <p id="message"></p>
+    <div class="container">
+        <div class="card">
+            <div class="header">
+                <div class="logo">
+                    <i class="fas fa-graduation-cap"></i>
+                </div>
+                <h2>Join as a Tutor</h2>
+                <p>Share your knowledge and inspire students worldwide</p>
+            </div>
+            
+            <form id="tutorSignupForm">
+                <div class="form-group">
+                    <i class="fas fa-user input-icon"></i>
+                    <input type="text" id="name" class="form-control" placeholder="Full Name" required>
+                </div>
+                
+                <div class="form-group">
+                    <i class="fas fa-envelope input-icon"></i>
+                    <input type="email" id="email" class="form-control" placeholder="Email Address" required>
+                </div>
+                
+                <div class="form-group">
+                    <i class="fas fa-lock input-icon"></i>
+                    <input type="password" id="password" class="form-control" placeholder="Password" required>
+                    <i class="fas fa-eye password-toggle" id="passwordToggle"></i>
+                </div>
+                
+                <button type="submit" class="btn">
+                    <i class="fas fa-user-plus"></i> Create Account
+                </button>
+            </form>
+            
+            <p id="message"></p>
+            
+            <div class="footer">
+                Already have an account? <a href="#">Sign in</a><br>
+                <a href="#">Terms of Service</a> • <a href="#">Privacy Policy</a>
+            </div>
+        </div>
+    </div>
 
     <script type="module">
+        // Firebase imports (unchanged from original)
         import { auth, db } from './scheduler-firebase.js';
         import { createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
         import { doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 
         const form = document.getElementById("tutorSignupForm");
         const message = document.getElementById("message");
+        const passwordToggle = document.getElementById("passwordToggle");
+        const passwordInput = document.getElementById("password");
+
+        // Password visibility toggle
+        passwordToggle.addEventListener('click', () => {
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                passwordToggle.classList.remove('fa-eye');
+                passwordToggle.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                passwordToggle.classList.remove('fa-eye-slash');
+                passwordToggle.classList.add('fa-eye');
+            }
+        });
 
         form.addEventListener("submit", async (e) => {
             e.preventDefault();
             message.textContent = "";
+            message.className = "";
 
             const name = document.getElementById("name").value.trim();
             const email = document.getElementById("email").value.trim();
             const password = document.getElementById("password").value;
 
-            if (!name || !email || !password) {
-                message.textContent = "Please fill all fields.";
-                return;
+            // Form validation
+            let isValid = true;
+            
+            if (!name) {
+                showError(document.getElementById('name'), "Please enter your name");
+                isValid = false;
             }
+            
+            if (!email) {
+                showError(document.getElementById('email'), "Please enter your email");
+                isValid = false;
+            } else if (!isValidEmail(email)) {
+                showError(document.getElementById('email'), "Please enter a valid email");
+                isValid = false;
+            }
+            
+            if (!password) {
+                showError(document.getElementById('password'), "Please enter a password");
+                isValid = false;
+            } else if (password.length < 6) {
+                showError(document.getElementById('password'), "Password must be at least 6 characters");
+                isValid = false;
+            }
+            
+            if (!isValid) return;
 
             try {
                 // Create Firebase Auth user
@@ -57,15 +333,46 @@
                     createdAt: serverTimestamp()
                 });
 
-                message.style.color = "green";
-                message.textContent = "Signup successful! Your account is pending approval.";
+                showSuccess("Signup successful! Your account is pending approval. You'll receive an email once approved.");
                 form.reset();
 
             } catch (error) {
                 console.error(error);
-                message.style.color = "red";
-                message.textContent = error.message;
+                showError(null, error.message);
+                
+                // Add shake animation to form on error
+                form.classList.add('shake');
+                setTimeout(() => form.classList.remove('shake'), 600);
             }
+        });
+
+        // Helper functions
+        function showError(input, text) {
+            message.textContent = text;
+            message.className = "error";
+            
+            if (input) {
+                input.style.borderColor = "#e63946"; // use the HEX color directly;
+                input.focus();
+            }
+        }
+        
+        function showSuccess(text) {
+            message.textContent = text;
+            message.className = "success";
+        }
+        
+        function isValidEmail(email) {
+            const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+            return re.test(String(email).toLowerCase());
+        }
+        
+        // Clear error styling on input
+        const inputs = document.querySelectorAll('input');
+        inputs.forEach(input => {
+            input.addEventListener('input', () => {
+                input.style.borderColor = '#e6e6e6';
+            });
         });
     </script>
 </body>
