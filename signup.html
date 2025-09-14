@@ -1,41 +1,304 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Scheduler Signup</title>
-  <link rel="stylesheet" href="css/styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scheduler Signup</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4361ee;
+      --primary-dark: #3a0ca3;
+      --accent: #f72585;
+      --light: #f8f9fa;
+      --dark: #212529;
+      --gray: #6c757d;
+      --light-gray: #e9ecef;
+      --success: #4cc9f0;
+      --error: #e63946;
+      --border-radius: 12px;
+      --box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      --transition: all 0.3s ease;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      color: var(--dark);
+      line-height: 1.6;
+    }
+    
+    .container {
+      width: 100%;
+      max-width: 450px;
+      background: white;
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+      padding: 35px;
+      transition: var(--transition);
+    }
+    
+    .container:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+    }
+    
+    h2 {
+      text-align: center;
+      font-weight: 700;
+      color: var(--dark);
+      margin-bottom: 25px;
+      font-size: 28px;
+      position: relative;
+    }
+    
+    h2:after {
+      content: '';
+      display: block;
+      width: 50px;
+      height: 4px;
+      background: var(--primary);
+      margin: 10px auto 0;
+      border-radius: 2px;
+    }
+    
+    form {
+      margin-bottom: 25px;
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+      position: relative;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: var(--dark);
+    }
+    
+    .input-icon {
+      position: absolute;
+      left: 15px;
+      top: 42px;
+      color: var(--gray);
+      font-size: 18px;
+    }
+    
+    input[type="text"],
+    input[type="email"],
+    input[type="password"] {
+      width: 100%;
+      padding: 15px 15px 15px 45px;
+      border: 2px solid var(--light-gray);
+      border-radius: var(--border-radius);
+      font-size: 16px;
+      transition: var(--transition);
+      background-color: #fafafa;
+    }
+    
+    input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
+      outline: none;
+      background-color: white;
+    }
+    
+    .role-selection {
+      background-color: var(--light);
+      padding: 20px;
+      border-radius: var(--border-radius);
+      margin-bottom: 20px;
+    }
+    
+    .role-selection p {
+      margin-bottom: 15px;
+      font-weight: 500;
+      color: var(--dark);
+    }
+    
+    .radio-group {
+      display: flex;
+      gap: 20px;
+    }
+    
+    .radio-option {
+      flex: 1;
+      text-align: center;
+    }
+    
+    .radio-option input[type="radio"] {
+      display: none;
+    }
+    
+    .radio-option label {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 15px;
+      background: white;
+      border: 2px solid var(--light-gray);
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    
+    .radio-option label i {
+      font-size: 24px;
+      margin-bottom: 10px;
+      color: var(--gray);
+    }
+    
+    .radio-option input[type="radio"]:checked + label {
+      border-color: var(--primary);
+      background-color: rgba(67, 97, 238, 0.05);
+    }
+    
+    .radio-option input[type="radio"]:checked + label i {
+      color: var(--primary);
+    }
+    
+    button {
+      width: 100%;
+      padding: 15px;
+      background: linear-gradient(to right, var(--primary), var(--primary-dark));
+      color: white;
+      border: none;
+      border-radius: var(--border-radius);
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
+    }
+    
+    button:hover {
+      background: linear-gradient(to right, var(--primary-dark), var(--primary));
+      box-shadow: 0 6px 20px rgba(67, 97, 238, 0.4);
+      transform: translateY(-2px);
+    }
+    
+    button:active {
+      transform: translateY(0);
+    }
+    
+    #signupMsg {
+      padding: 15px;
+      border-radius: var(--border-radius);
+      margin-top: 20px;
+      text-align: center;
+      font-weight: 500;
+      display: none;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    
+    .success {
+      background-color: rgba(76, 201, 240, 0.15);
+      color: var(--success);
+      border: 1px solid var(--success);
+      display: block;
+      opacity: 1;
+    }
+    
+    .error {
+      background-color: rgba(230, 57, 70, 0.15);
+      color: var(--error);
+      border: 1px solid var(--error);
+      display: block;
+      opacity: 1;
+    }
+    
+    .login-link {
+      text-align: center;
+      color: var(--gray);
+      font-size: 15px;
+    }
+    
+    .login-link a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 500;
+      transition: var(--transition);
+    }
+    
+    .login-link a:hover {
+      color: var(--primary-dark);
+      text-decoration: underline;
+    }
+    
+    @media (max-width: 500px) {
+      .container {
+        padding: 25px;
+      }
+      
+      h2 {
+        font-size: 24px;
+      }
+      
+      .radio-group {
+        flex-direction: column;
+        gap: 10px;
+      }
+    }
+  </style>
 </head>
 <body>
-  <div class="container">
-    <h2>Create Your Account</h2>
-    <form id="signupForm">
-      <div>
-        <label for="name">Full Name:</label>
-        <input type="text" id="name" placeholder="Enter your full name">
-      </div>
-      <div>
-        <label for="email">Email:</label>
-        <input type="email" id="email" placeholder="Enter your email">
-      </div>
-      <div>
-        <label for="password">Password:</label>
-        <input type="password" id="password" placeholder="Enter a password">
-      </div>
-      <div>
-        <p>Select Role:</p>
-        <label>
-          <input type="radio" name="role" value="student" checked> Student
-        </label>
-        <label>
-          <input type="radio" name="role" value="tutor"> Tutor
-        </label>
-      </div>
-      <button type="button" id="signupBtn">Sign Up</button>
-      <p id="signupMsg"></p>
-    </form>
-    <p>Already have an account? <a href="login.html">Login here</a></p>
-  </div>
-  <script type="module" src="signup.js"></script>
+  <div class="container">
+    <h2>Create Your Account</h2>
+    <form id="signupForm">
+      <div class="form-group">
+        <label for="name">Full Name</label>
+        <i class="fas fa-user input-icon"></i>
+        <input type="text" id="name" placeholder="Enter your full name">
+      </div>
+      <div class="form-group">
+        <label for="email">Email</label>
+        <i class="fas fa-envelope input-icon"></i>
+        <input type="email" id="email" placeholder="Enter your email">
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <i class="fas fa-lock input-icon"></i>
+        <input type="password" id="password" placeholder="Enter a password">
+      </div>
+      <div class="role-selection">
+        <p>Select Role</p>
+        <div class="radio-group">
+          <div class="radio-option">
+            <input type="radio" name="role" id="student" value="student" checked>
+            <label for="student">
+              <i class="fas fa-user-graduate"></i>
+              Student
+            </label>
+          </div>
+          <div class="radio-option">
+            <input type="radio" name="role" id="tutor" value="tutor">
+            <label for="tutor">
+              <i class="fas fa-chalkboard-teacher"></i>
+              Tutor
+            </label>
+          </div>
+        </div>
+      </div>
+      <button type="button" id="signupBtn">Sign Up</button>
+      <p id="signupMsg"></p>
+    </form>
+    <p class="login-link">Already have an account? <a href="login.html">Login here</a></p>
+  </div>
+  <script type="module" src="signup.js"></script>
 </body>
 </html>
