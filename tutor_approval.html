@@ -194,6 +194,18 @@
             opacity: 0;
         }
         
+        .btn-secondary {
+            background: white;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+            box-shadow: none;
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(67, 97, 238, 0.1);
+            box-shadow: 0 4px 10px rgba(67, 97, 238, 0.2);
+        }
+        
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
@@ -284,6 +296,13 @@
             max-width: 400px;
             line-height: 1.5;
             animation: slideInUp 0.6s ease 0.4s both;
+            margin-bottom: 25px;
+        }
+        
+        .success-actions {
+            display: flex;
+            gap: 15px;
+            animation: slideInUp 0.6s ease 0.6s both;
         }
         
         @keyframes bounceIn {
@@ -410,6 +429,11 @@
             .success-icon {
                 font-size: 60px;
             }
+            
+            .success-actions {
+                flex-direction: column;
+                width: 80%;
+            }
         }
     </style>
 </head>
@@ -442,7 +466,7 @@
                     <input type="password" id="password" class="form-control" placeholder="Password (min. 6 characters)" required minlength="6">
                     <i class="fas fa-eye password-toggle" id="passwordToggle"></i>
                     <div class="error-message" id="passwordError"></div>
-                    <div class="password-strength" id="passwordStrength">
+                    <div class="password-streight" id="passwordStrength">
                         <div class="strength-bar">
                             <div class="strength-fill" id="strengthFill"></div>
                         </div>
@@ -463,6 +487,8 @@
             <div class="footer">
                 Already have an account? <a href="#" id="signinLink">Sign in</a>
                 <br>
+                <a href="tutor_employment_webform.html" id="employmentLink">Learn more about tutor opportunities</a>
+                <br>
                 <a href="#" id="termsLink">Terms of Service</a> • <a href="#" id="privacyLink">Privacy Policy</a>
             </div>
         </div>
@@ -477,6 +503,14 @@
         <div class="success-subtext">
             Welcome to our tutoring platform! Your account is pending approval. 
             You'll receive an email notification once your account is approved and ready to use.
+        </div>
+        <div class="success-actions">
+            <button class="btn" onclick="window.location.href='tutor_employment_webform.html'">
+                <i class="fas fa-file-alt"></i> Complete Employment Form
+            </button>
+            <button class="btn btn-secondary" id="closeSuccess">
+                <i class="fas fa-times"></i> Close
+            </button>
         </div>
     </div>
 
@@ -494,6 +528,7 @@
         const successOverlay = document.getElementById("successOverlay");
         const nameInput = document.getElementById("name");
         const emailInput = document.getElementById("email");
+        const closeSuccessBtn = document.getElementById("closeSuccess");
 
         // Password visibility toggle
         passwordToggle.addEventListener('click', () => {
@@ -692,11 +727,6 @@
         
         function showSuccessOverlay() {
             successOverlay.classList.add('show');
-            
-            // Hide overlay after 4 seconds
-            setTimeout(() => {
-                successOverlay.classList.remove('show');
-            }, 4000);
         }
         
         function isValidEmail(email) {
@@ -724,10 +754,15 @@
         });
 
         // Close success overlay when clicked
-        successOverlay.addEventListener('click', () => {
+        closeSuccessBtn.addEventListener('click', () => {
             successOverlay.classList.remove('show');
+        });
+        
+        successOverlay.addEventListener('click', (e) => {
+            if (e.target === successOverlay) {
+                successOverlay.classList.remove('show');
+            }
         });
     </script>
 </body>
 </html>
-
