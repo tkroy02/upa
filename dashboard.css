@@ -955,6 +955,32 @@ body {
     border-radius: 50%;
 }
 
+/* FIX: Calendar date selection for desktop */
+.calendar-day.selected {
+    background-color: var(--primary);
+    color: white;
+    font-weight: 700;
+    border: none;
+    box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
+    z-index: 2;
+}
+
+.calendar-day.selected.has-sessions::after {
+    background-color: white;
+    bottom: 6px;
+}
+
+.calendar-day.selected:hover {
+    background-color: var(--primary);
+    color: white;
+    transform: translateY(-2px) scale(1.05);
+}
+
+.calendar-day.today.selected {
+    background: var(--primary-gradient);
+    box-shadow: 0 6px 20px rgba(67, 97, 238, 0.4);
+}
+
 /* Mobile menu toggle button */
 .menu-toggle {
     display: none; /* Hidden by default */
@@ -1159,7 +1185,6 @@ body {
     
     .calendar-day {
         padding: 6px 1px;
-        font-size: 0.75rem;
     }
     
     .calendar-day-header {
